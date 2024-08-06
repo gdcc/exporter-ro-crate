@@ -125,7 +125,7 @@ public class ROCrateExporterTest {
         // String fromExporter = outputStream.toString();
 
         JsonReader exportReader = Json.createReader(new StringReader(outputStream.toString().trim()));
-        JsonArray fromExporter = exportReader.readObject().getJsonArray("graph");
+        JsonArray fromExporter = exportReader.readObject().getJsonArray("@graph");
         ;
 
         InputStream is = null;
@@ -136,7 +136,7 @@ public class ROCrateExporterTest {
         }
 
         JsonReader jsonReader = Json.createReader(is);
-        JsonArray expected = jsonReader.readObject().getJsonArray("graph");
+        JsonArray expected = jsonReader.readObject().getJsonArray("@graph");
         assertEquals(expected.size(), fromExporter.size());
         for (JsonValue object : expected) {
             assert (fromExporter.contains(object));
