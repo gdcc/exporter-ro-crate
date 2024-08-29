@@ -7,6 +7,7 @@ import jakarta.json.JsonObject;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.StringWriter;
@@ -122,11 +123,10 @@ public class ROCrateExporterTest {
     @Test
     public void testExportDataset() throws Exception {
         roCrateExporter.exportDataset(dataProvider, outputStream);
-        // String fromExporter = outputStream.toString();
 
         JsonReader exportReader = Json.createReader(new StringReader(outputStream.toString().trim()));
+        
         JsonArray fromExporter = exportReader.readObject().getJsonArray("@graph");
-        ;
 
         InputStream is = null;
         try {

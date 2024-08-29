@@ -1,9 +1,13 @@
 package be.libis.rdm.export.ROCrate;
 
 import com.google.auto.service.AutoService;
+import com.google.gson.Gson;
+
 import io.gdcc.spi.export.ExportDataProvider;
 import io.gdcc.spi.export.ExportException;
 import io.gdcc.spi.export.Exporter;
+
+import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.io.StringWriter;
 import java.util.ArrayList;
@@ -17,6 +21,7 @@ import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObjectBuilder;
+import jakarta.json.JsonWriter;
 import jakarta.ws.rs.core.MediaType;
 
 import com.jayway.jsonpath.JsonPath;
@@ -146,7 +151,7 @@ public class ROCrateExporter implements Exporter {
          * the "value" field.
          */
         final ArrayList<String> referredIds;
-        String refersToValue = refersToValueString.replace("refersTo:", "");
+            String refersToValue = refersToValueString.replace("refersTo:", "");
         if (refersToValue.startsWith("\"")) {
             referredIds = new ArrayList<String>();
             referredIds.add(replaceQuotations(refersToValue));
@@ -183,6 +188,9 @@ public class ROCrateExporter implements Exporter {
         /*
          * Read jsonpath and unpack if it consists of a single item within a list
          */
+        if (!jsonString.contains("datasetVersion")) {
+            jsonPath = "$";
+        }
         Object dataObject = JsonPath.read(jsonString, jsonPath);
         while (dataObject instanceof List && ((List) dataObject).size() == 1) {
             dataObject = ((List) dataObject).get(0);
@@ -209,20 +217,24 @@ public class ROCrateExporter implements Exporter {
             }
 
             String value = row.get("value");
+            String targetPropertyName = row.get("targetPropertyName");
             if (value.contains("refersTo:")) {
                 ArrayList<String> referredIds = addReferredEntityAsContextual(csv, jsonString, value, entityMap);
                 JsonArrayBuilder arrayOfIdsToAdd = Json.createArrayBuilder();
+
+
                 if (referredIds.size() > 1) {
                     for (String referredId : referredIds) {
                         JsonObjectBuilder idToAdd = Json.createObjectBuilder();
                         idToAdd.add("@id", referredId.replace("\"", ""));
                         arrayOfIdsToAdd.add(idToAdd);
                     }
-                    entityToAdd.add(row.get("targetPropertyName"), arrayOfIdsToAdd);
+                    entityToAdd.add(targetPropertyName, arrayOfIdsToAdd);
+
                 } else if (referredIds.size() == 1) {
                     JsonObjectBuilder idToAdd = Json.createObjectBuilder();
                     idToAdd.add("@id", referredIds.get(0).replace("\"", ""));
-                    entityToAdd.add(row.get("targetPropertyName"), idToAdd);
+                    entityToAdd.add(targetPropertyName, idToAdd);
                 }
 
             } else {
@@ -230,20 +242,18 @@ public class ROCrateExporter implements Exporter {
                 if (value.startsWith("\"")) {
                     // fixed value: the values within the quotations are directly taken as a target
                     // value, rather than extracting from the metadata.
+                    
+                    entityToAdd.add(targetPropertyName, value.replace("\"", ""));
 
-                    entityToAdd.add(row.get("targetPropertyName"), value.replace("\"", ""));
-
-                    if (row.get("targetPropertyName").equals("@id")) {
+                    if (targetPropertyName.equals("@id")) {
                         id = value.replace("\"", "");
-                        ids.add(value);
+                        ids.add(id);
                     }
                 } else {
 
                     String sourcePath = row.get("source");
                     String sourceField = row.get("sourceField");
-                    String targetPropertyName = row.get("targetPropertyName");
                     String valueFrom = row.get("value");
-
                     String jsonPath = getJsonPath(sourcePath, sourceField, valueFrom);
                     Object dataObject = readAndUnpackJsonPath(jsonString, jsonPath);
 
@@ -338,6 +348,7 @@ public class ROCrateExporter implements Exporter {
                 sourcePath = row.get("source");
                 sourceField = row.get("sourceField");
                 jsonPath = getJsonPath(sourcePath, sourceField);
+            
                 dataObject = readAndUnpackJsonPath(jsonString, jsonPath);
             }
             String targetPropertyName = row.get("targetPropertyName");
@@ -348,16 +359,19 @@ public class ROCrateExporter implements Exporter {
             propertyNameValue.put(targetPropertyName, targetPropertyValues);
         }
 
+
         if (dataObject instanceof LinkedHashMap) {
             LinkedHashMap mapObject = (LinkedHashMap) dataObject;
 
             JsonObjectBuilder entityToAdd = Json.createObjectBuilder();
             for (String propertyName : propertyNameValue.keySet()) {
                 for (String value : propertyNameValue.get(propertyName)) {
-                    if (value.contains("refersTo:")) {
-
-                        ArrayList<String> referredIds = addReferredEntityAsContextual(csv, dataObject.toString(), value,
-                                entityMap);
+                    if (value.startsWith("\"")) {
+                        entityToAdd.add(propertyName, replaceQuotations(value));
+                    } else if (value.contains("refersTo:")) {
+                        Gson gson = new Gson();
+                        String dataObjectAsString = gson.toJson(dataObject);
+                        ArrayList<String> referredIds = addReferredEntityAsContextual(csv, dataObjectAsString, value, entityMap);
                         JsonArrayBuilder arrayOfIdsToAdd = Json.createArrayBuilder();
                         if (referredIds.size() > 1) {
                             for (String referredId : referredIds) {
@@ -372,13 +386,27 @@ public class ROCrateExporter implements Exporter {
                             entityToAdd.add(propertyName, idToAdd);
                         }
 
-                    } else if (mapObject.keySet().contains(value)) {
-                        entityToAdd.add(propertyName, (String) mapObject.get(value));
-                        if (propertyName.equals("@id")) {
+                    } else if (mapObject.keySet().contains(value)) {                        
+                        if (mapObject.get(value) instanceof String) {
+                            entityToAdd.add(propertyName, (String) mapObject.get(value));
+                            if (propertyName.equals("@id")) {
+                                id = (String) mapObject.get(value);
+                                ids.add((String) mapObject.get(value));
+                            }
+                            break;
+                        } else if (mapObject.get(value) instanceof LinkedHashMap) {
+                            entityToAdd.add(propertyName,
+                                    (String) ((LinkedHashMap) mapObject.get(value)).get("value"));
+                            if (propertyName.equals("@id")) {
+                                id = (String) ((LinkedHashMap) mapObject.get(value)).get("value");
+                                ids.add((String) ((LinkedHashMap) mapObject.get(value)).get("value"));
+                            }
+                            break;
+                        }
+                    if (propertyName.equals("@id")) {
                             ids.add((String) mapObject.get(value));
                             id = (String) mapObject.get(value);
                         }
-
                         break;
                     }
                 }
@@ -396,8 +424,7 @@ public class ROCrateExporter implements Exporter {
                     if (propertyName.isBlank()) {
                         continue;
                     }
-                    entityToAdd.add(propertyName,
-                            (value.startsWith("\"") ? value.replace("\"", "") : (String) dataObject));
+                    entityToAdd.add(propertyName, value.startsWith("\"") ? value.replace("\"", "") : (String) dataObject);
                     if (propertyName.equals("@id")) {
                         id = (String) dataObject;
                         ids.add((String) dataObject);
@@ -417,9 +444,14 @@ public class ROCrateExporter implements Exporter {
 
                 for (String propertyName : propertyNameValue.keySet()) {
                     for (String value : propertyNameValue.get(propertyName)) {
-                        if (value.contains("refersTo:")) {
-                            ArrayList<String> referredIds = getReferredEntityIds(csv, mapObject, value);
-
+                        
+                        if (value.startsWith("\"")) {
+                            entityToAdd.add(propertyName, value);
+                        } else if (value.contains("refersTo:")) {
+                            // ArrayList<String> referredIds = getReferredEntityIds(csv, mapObject, value);
+                            Gson gson = new Gson();
+                            String dataObjectAsString = gson.toJson(mapObject);
+                            ArrayList<String> referredIds = addReferredEntityAsContextual(csv, dataObjectAsString, value, entityMap);
                             JsonArrayBuilder arrayOfIdsToAdd = Json.createArrayBuilder();
                             if (referredIds.size() > 1) {
                                 for (String referredId : referredIds) {
@@ -439,6 +471,7 @@ public class ROCrateExporter implements Exporter {
                             if (mapObject.get(value) instanceof String) {
                                 entityToAdd.add(propertyName, (String) mapObject.get(value));
                                 if (propertyName.equals("@id")) {
+                                    id = (String) mapObject.get(value);
                                     ids.add((String) mapObject.get(value));
                                 }
                                 break;
@@ -526,7 +559,6 @@ public class ROCrateExporter implements Exporter {
                 dataEntity = (JsonObjectBuilder) entityMap.get(fileEntityId);
             } else {
                 dataEntity = Json.createObjectBuilder();
-
             }
 
             LinkedHashMap<String, Object> currentEntityProperties = fileEntityMap.get(fileEntityId);
