@@ -84,7 +84,17 @@ public class ROCrateExporter implements Exporter {
          * Turns single quotes into double quotes for uniformity.
          */
         if ((s.startsWith("\'") && s.endsWith("\'")) || (s.startsWith("\"") && s.endsWith("\""))) {
-            s = "\"" + s.substring(3, s.length() - 3).strip() + "\"";
+            s = "\"" + s.replace("\"", "").replace("\'", "").strip() + "\"";
+        }
+        return s;
+    }
+
+    static String removeQuotations(String s) {
+        /*
+         * Turns single quotes into double quotes for uniformity.
+         */
+        while ((s.startsWith("\'") && s.endsWith("\'")) || (s.startsWith("\"") && s.endsWith("\""))) {
+            s = s.substring(1, s.length() - 1).strip();
         }
         return s;
     }
@@ -226,14 +236,14 @@ public class ROCrateExporter implements Exporter {
                 if (referredIds.size() > 1) {
                     for (String referredId : referredIds) {
                         JsonObjectBuilder idToAdd = Json.createObjectBuilder();
-                        idToAdd.add("@id", referredId.replace("\"", ""));
+                        idToAdd.add("@id", removeQuotations(referredId));
                         arrayOfIdsToAdd.add(idToAdd);
                     }
                     entityToAdd.add(targetPropertyName, arrayOfIdsToAdd);
 
                 } else if (referredIds.size() == 1) {
                     JsonObjectBuilder idToAdd = Json.createObjectBuilder();
-                    idToAdd.add("@id", referredIds.get(0).replace("\"", ""));
+                    idToAdd.add("@id", removeQuotations(referredIds.get(0)));
                     entityToAdd.add(targetPropertyName, idToAdd);
                 }
 
@@ -243,10 +253,10 @@ public class ROCrateExporter implements Exporter {
                     // fixed value: the values within the quotations are directly taken as a target
                     // value, rather than extracting from the metadata.
                     
-                    entityToAdd.add(targetPropertyName, value.replace("\"", ""));
+                    entityToAdd.add(targetPropertyName, removeQuotations(value));
 
                     if (targetPropertyName.equals("@id")) {
-                        id = value.replace("\"", "");
+                        id = removeQuotations(value);
                         ids.add(id);
                     }
                 } else {
@@ -367,7 +377,7 @@ public class ROCrateExporter implements Exporter {
             for (String propertyName : propertyNameValue.keySet()) {
                 for (String value : propertyNameValue.get(propertyName)) {
                     if (value.startsWith("\"")) {
-                        entityToAdd.add(propertyName, replaceQuotations(value));
+                        entityToAdd.add(propertyName, removeQuotations(value));
                     } else if (value.contains("refersTo:")) {
                         Gson gson = new Gson();
                         String dataObjectAsString = gson.toJson(dataObject);
@@ -376,13 +386,13 @@ public class ROCrateExporter implements Exporter {
                         if (referredIds.size() > 1) {
                             for (String referredId : referredIds) {
                                 JsonObjectBuilder idToAdd = Json.createObjectBuilder();
-                                idToAdd.add("@id", referredId.replace("\"", ""));
+                                idToAdd.add("@id", removeQuotations(referredId));
                                 arrayOfIdsToAdd.add(idToAdd);
                             }
                             entityToAdd.add(propertyName, arrayOfIdsToAdd);
                         } else if (referredIds.size() == 1) {
                             JsonObjectBuilder idToAdd = Json.createObjectBuilder();
-                            idToAdd.add("@id", referredIds.get(0).replace("\"", ""));
+                            idToAdd.add("@id", removeQuotations(referredIds.get(0)));
                             entityToAdd.add(propertyName, idToAdd);
                         }
 
@@ -424,7 +434,7 @@ public class ROCrateExporter implements Exporter {
                     if (propertyName.isBlank()) {
                         continue;
                     }
-                    entityToAdd.add(propertyName, value.startsWith("\"") ? value.replace("\"", "") : (String) dataObject);
+                    entityToAdd.add(propertyName, value.startsWith("\"") ? removeQuotations(value) : (String) dataObject);
                     if (propertyName.equals("@id")) {
                         id = (String) dataObject;
                         ids.add((String) dataObject);
@@ -446,7 +456,7 @@ public class ROCrateExporter implements Exporter {
                     for (String value : propertyNameValue.get(propertyName)) {
                         
                         if (value.startsWith("\"")) {
-                            entityToAdd.add(propertyName, value);
+                            entityToAdd.add(propertyName, removeQuotations(value));
                         } else if (value.contains("refersTo:")) {
                             // ArrayList<String> referredIds = getReferredEntityIds(csv, mapObject, value);
                             Gson gson = new Gson();
@@ -456,13 +466,13 @@ public class ROCrateExporter implements Exporter {
                             if (referredIds.size() > 1) {
                                 for (String referredId : referredIds) {
                                     JsonObjectBuilder idToAdd = Json.createObjectBuilder();
-                                    idToAdd.add("@id", referredId.replace("\"", ""));
+                                    idToAdd.add("@id", removeQuotations(referredId));
                                     arrayOfIdsToAdd.add(idToAdd);
                                 }
                                 entityToAdd.add(propertyName, arrayOfIdsToAdd);
                             } else if (referredIds.size() == 1) {
                                 JsonObjectBuilder idToAdd = Json.createObjectBuilder();
-                                idToAdd.add("@id", referredIds.get(0).replace("\"", ""));
+                                idToAdd.add("@id", removeQuotations(referredIds.get(0)));
                                 entityToAdd.add(propertyName, idToAdd);
                             }
 
