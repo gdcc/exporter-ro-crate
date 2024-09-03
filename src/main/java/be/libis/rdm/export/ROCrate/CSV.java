@@ -28,7 +28,7 @@ public class CSV {
          * Returns all the Csv rows containing the entity type. 
          */
 
-        return this.rowsByEntity.get(entityName);
+        return this.rowsByEntity.get(entityName.strip());
     }
 
     static LinkedHashMap<String, ArrayList<Map<String, String>>> filterRowsByEntity(
