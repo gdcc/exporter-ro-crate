@@ -208,7 +208,7 @@ public class ROCrateExporter implements Exporter {
         return dataObject;
     }
 
-    static public void addRootEntity(CSV csv, String jsonString, String entityName, Map<String, Object> entityMap)
+    static public ArrayList<String>  addRootEntity(CSV csv, String jsonString, String entityName, Map<String, Object> entityMap)
             throws Exception {
         /*
          * Adds the entities that are at the root level of the ro-crate-metadata.json
@@ -329,7 +329,7 @@ public class ROCrateExporter implements Exporter {
         if (id != null) {
             entityMap.put(id, entityToAdd);
         }
-
+        return ids;
     }
 
     static public ArrayList<String> addContextualEntity(final CSV csv, String jsonString, String entityName,
@@ -341,7 +341,7 @@ public class ROCrateExporter implements Exporter {
         ArrayList<Map<String, String>> rows = csv.getRowsByEntity(entityName);
         String id = null;
         if (entityName.equals("Root") || entityName.equals("Metadata")) {
-            addRootEntity(csv, jsonString, entityName, entityMap);
+            ids = addRootEntity(csv, jsonString, entityName, entityMap);
             return ids;
         }
         int i = 0;
