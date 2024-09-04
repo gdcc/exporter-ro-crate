@@ -103,7 +103,10 @@ public class ROCrateExporter implements Exporter {
         /**
          * Produces a JsonPath string for getting the field in the source in the
          * dataset metadata or metadata blocks.
-         * TODO: examples here to clarify: what is source, what is field...
+         * "source" refers to the source the data is to be extracted from. 
+         * It can be a metadatata block such as citation(datasetVersion/metadataBlocks/citation), or the dataset version itself (datasetVersion)
+         * "field" is the field within the source within which the properties will be mapped. 
+         * For example, to get properties of the authors, one can use "datasetVersion/metadataBlocks/citation" as the source and "author" as the field.
          */
         if (source.isBlank() && field.isBlank()) {
             return "$";
