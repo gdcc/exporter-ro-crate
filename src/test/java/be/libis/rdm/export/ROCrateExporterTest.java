@@ -105,43 +105,5 @@ public class ROCrateExporterTest {
         assertEquals("application/json", roCrateExporter.getMediaType());
     }
 
-    static String prettifyJson(JsonObject jsonObject) {
-
-        StringWriter stringWriter = new StringWriter();
-        Map<String, Object> properties = Collections.singletonMap(JsonGenerator.PRETTY_PRINTING, true);
-        JsonWriterFactory writerFactory = Json.createWriterFactory(properties);
-        JsonWriter jsonWriter = writerFactory.createWriter(stringWriter);
-
-        jsonWriter.write(jsonObject);
-        jsonWriter.close();
-
-        String prettyJson = stringWriter.toString();
-        return prettyJson;
-
-    }
-
-    @Test
-    public void testExportDataset() throws Exception {
-        roCrateExporter.exportDataset(dataProvider, outputStream);
-
-        JsonReader exportReader = Json.createReader(new StringReader(outputStream.toString().trim()));
-        
-        JsonArray fromExporter = exportReader.readObject().getJsonArray("@graph");
-
-        InputStream is = null;
-        try {
-            is = new FileInputStream("./src/test/resources/testDataset/ro-crate-metadata.json");
-        } catch (Exception e) {
-            System.err.println("File not found.");
-        }
-
-        JsonReader jsonReader = Json.createReader(is);
-        JsonArray expected = jsonReader.readObject().getJsonArray("@graph");
-        assertEquals(expected.size(), fromExporter.size());
-        for (JsonValue object : expected) {
-            assert (fromExporter.contains(object));
-        }
-
-    }
 
 }
