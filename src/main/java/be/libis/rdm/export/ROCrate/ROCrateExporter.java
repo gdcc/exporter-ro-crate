@@ -267,7 +267,7 @@ public class ROCrateExporter implements Exporter {
                     String sourcePath = row.get("source");
                     String sourceField = row.get("sourceField");
                     String valueFrom = row.get("value");
-                    String jsonPath = getJsonPath(sourcePath, sourceField, valueFrom);
+                    String jsonPath = getJsonPath(sourcePath, sourceField);
                     Object dataObject = readAndUnpackJsonPath(jsonString, jsonPath);
 
                     if (dataObject instanceof LinkedHashMap
@@ -281,8 +281,13 @@ public class ROCrateExporter implements Exporter {
                     } else if (dataObject instanceof LinkedHashMap) {
                         // Case: object is a Map
                         // -> cast it to Map, get properties
-                        LinkedHashMap<String, Object> mapObject = (LinkedHashMap<String, Object>) dataObject;
-                        entityToAdd.add(targetPropertyName, (String) mapObject.get(valueFrom));
+                        dataObject = ((LinkedHashMap<String, Object>) dataObject).get(valueFrom);
+                        if (dataObject instanceof LinkedHashMap) {
+                            entityToAdd.add(targetPropertyName, ((LinkedHashMap<String, String>)dataObject).get("value"));
+                        }  else if (dataObject instanceof String) {
+                            entityToAdd.add(targetPropertyName, (String) dataObject);
+                        }   
+
                     } else if (dataObject instanceof List) {
                         List<Object> listObject = (List<Object>) dataObject;
                         // Case: object is an Array
@@ -322,7 +327,7 @@ public class ROCrateExporter implements Exporter {
 
                             }
                             entityToAdd.add(targetPropertyName, values.get(0).toString());
-                        }
+                        } 
                     }
 
                 }
@@ -633,7 +638,6 @@ public class ROCrateExporter implements Exporter {
         for (String id : entityMap.keySet()) {
             jsonArrayBuilder.add((JsonObjectBuilder) entityMap.get(id));
         }
-
         result.add("@graph", jsonArrayBuilder);
         return result.build();
     }
