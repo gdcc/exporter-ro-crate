@@ -13,7 +13,7 @@ Root,,,,
 ,license,,,refersTo:License
 ,author,,,refersTo:Author
 ,datePublished,datasetVersion,publicationDate,
-,keywords,datasetVersion/metadataBlocks/citation,keyword,keywordvalue
+,keywords,datasetVersion/metadataBlocks/citation,keyword,keywordValue
 ,funder,,,refersTo:Funder
 ,contactPoint,,,refersTo:DatasetContact
 Author,,datasetVersion/metadataBlocks/citation,author,
@@ -42,5 +42,5 @@ DatasetContactPoint,,datasetVersion/metadataBlocks/citation,datasetContact,
 ,__id,,,datasetContactEmail
 ,__type,,,"""ContactPoint"""
 Funder,,datasetVersion/metadataBlocks/citation,grantNumber,
-,__id,,,grantNumberValue
+,__id,,,grantNumberAgency
 ,__type,,,"""Organization"""
