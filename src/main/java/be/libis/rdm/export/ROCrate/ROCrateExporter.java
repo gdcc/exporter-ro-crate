@@ -91,7 +91,7 @@ public class ROCrateExporter implements Exporter {
 
     static String removeQuotations(String s) {
         /*
-         * Turns single quotes into double quotes for uniformity.
+         * Removes quotations from a string. 
          */
         while ((s.startsWith("\'") && s.endsWith("\'")) || (s.startsWith("\"") && s.endsWith("\""))) {
             s = s.substring(1, s.length() - 1).strip();
