@@ -1,29 +1,22 @@
 package be.libis.rdm.export.ROCrate;
-
 import com.google.auto.service.AutoService;
 import com.google.gson.Gson;
-
 import io.gdcc.spi.export.ExportDataProvider;
 import io.gdcc.spi.export.ExportException;
 import io.gdcc.spi.export.Exporter;
 
 import java.io.FileOutputStream;
 import java.io.OutputStream;
-import java.io.StringWriter;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObjectBuilder;
-import jakarta.json.JsonWriter;
 import jakarta.ws.rs.core.MediaType;
-
 import com.jayway.jsonpath.JsonPath;
 
 /**
@@ -39,7 +32,6 @@ public class ROCrateExporter implements Exporter {
 
     // The default path from where the csv is to be read.
     String csvPath = "/exporters/dataverse2ro-crate.csv";
-
     /*
      * The name of the format it creates. If this format is already provided by a
      * built-in exporter, this Exporter will override the built-in one. (Note that
@@ -305,7 +297,7 @@ public class ROCrateExporter implements Exporter {
                             entityToAdd.add(targetPropertyName, jsonArrayBuilder);
                         } else if (listObject.size() > 0 && listObject.get(0) instanceof LinkedHashMap) {
                             // list of maps -> iterate
-                            ArrayList<Object> values = new ArrayList<Object>();
+                            JsonArrayBuilder values = Json.createArrayBuilder();
 
                             for (Object valueObject : listObject) {
 
@@ -326,7 +318,7 @@ public class ROCrateExporter implements Exporter {
                                 }
 
                             }
-                            entityToAdd.add(targetPropertyName, values.get(0).toString());
+                            entityToAdd.add(targetPropertyName, values);
                         } 
                     }
 
