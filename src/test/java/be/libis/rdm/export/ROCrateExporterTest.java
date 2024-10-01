@@ -1,31 +1,18 @@
 package be.libis.rdm.export;
-
 import io.gdcc.spi.export.ExportDataProvider;
 import jakarta.json.Json;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.StringWriter;
-import java.util.Collections;
-import java.util.Map;
 import java.util.Locale;
 import org.junit.jupiter.api.AfterEach;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import jakarta.json.JsonReader;
-import jakarta.json.JsonWriter;
-import jakarta.json.JsonWriterFactory;
-import jakarta.json.stream.JsonGenerator;
-import jakarta.json.JsonStructure;
-import jakarta.json.JsonValue;
-
-import java.io.StringReader;
 import be.libis.rdm.export.ROCrate.*;
 
 public class ROCrateExporterTest {
