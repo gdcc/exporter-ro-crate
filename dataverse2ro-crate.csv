@@ -14,6 +14,7 @@ Root,,,,
 ,author,,,refersTo:Author
 ,datePublished,datasetVersion,publicationDate,
 ,keywords,datasetVersion/metadataBlocks/citation,keyword,keywordValue
+,keywords,datasetVersion/metadataBlocks/citation,subject,
 ,funder,,,refersTo:Funder
 ,contactPoint,,,refersTo:DatasetContact
 Author,,datasetVersion/metadataBlocks/citation,author,
@@ -36,8 +37,11 @@ DatasetContact,,datasetVersion/metadataBlocks/citation,datasetContact,
 ,__id,,,datasetContactName
 ,__type,,,"""Person"""
 ,name,,,datasetContactName
-,affiliation ,,,datasetContactAffiliation
+,affiliation ,,,refersTo:DatasetContactAffiliation
 ,contactPoint,,,refersTo:DatasetContactPoint
+DatasetContactAffiliation,,datasetVersion/metadataBlocks/citation,datasetContact,
+,__id,,,datasetContactAffiliation
+,__type,,,"""Organization"""
 DatasetContactPoint,,datasetVersion/metadataBlocks/citation,datasetContact,
 ,__id,,,datasetContactEmail
 ,__type,,,"""ContactPoint"""
