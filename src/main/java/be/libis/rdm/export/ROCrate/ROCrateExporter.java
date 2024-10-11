@@ -16,7 +16,7 @@ import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObjectBuilder;
 import jakarta.ws.rs.core.MediaType;
 import com.jayway.jsonpath.JsonPath;
-
+import com.jayway.jsonpath.PathNotFoundException;
 import be.libis.rdm.export.ROCrate.builder.ROCrateBuilder;
 import be.libis.rdm.export.ROCrate.builder.ROCrateEntity;
 
@@ -197,7 +197,11 @@ public class ROCrateExporter implements Exporter {
         if (!jsonString.contains("datasetVersion")) {
             jsonPath = "$";
         }
-        Object dataObject = JsonPath.read(jsonString, jsonPath);
+        Object dataObject;
+        try {dataObject = JsonPath.read(jsonString, jsonPath);}
+        catch (PathNotFoundException e) {
+            dataObject = null;
+        }
         while (dataObject instanceof List && ((List) dataObject).size() == 1) {
             dataObject = ((List) dataObject).get(0);
         }
