@@ -61,7 +61,8 @@ public class ROCrateExporter implements Exporter {
 
     @Override
     public String getMediaType() {
-        return MediaType.APPLICATION_JSON;
+        // https://www.researchobject.org/ro-crate/specification/1.1/appendix/jsonld.html#ro-crate-json-ld-media-type
+        return "application/ld+json; profile=\"http://www.w3.org/ns/json-ld#flattened http://www.w3.org/ns/json-ld#compacted https://w3id.org/ro/crate\"";
     }
 
     public void setCsvPath(String newPath) {

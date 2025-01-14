@@ -89,7 +89,7 @@ public class ROCrateExporterTest {
 
     @Test
     public void testGetMediaType() {
-        assertEquals("application/json", roCrateExporter.getMediaType());
+        assertEquals("application/ld+json; profile=\"http://www.w3.org/ns/json-ld#flattened http://www.w3.org/ns/json-ld#compacted https://w3id.org/ro/crate\"", roCrateExporter.getMediaType());
     }
 
 
